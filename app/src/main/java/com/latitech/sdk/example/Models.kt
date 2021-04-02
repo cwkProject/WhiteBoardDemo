@@ -22,13 +22,13 @@ package com.latitech.sdk.example
  * @property password   房间密码，空串表示无密码
  */
 data class JoinParams(
-    val roomId: String,
-    val roleId: Int,
-    val userId: String,
-    val nickname: String = "",
-    val avatar: String = "",
-    val sessionId: String = "",
-    val password: String = ""
+        val roomId: String,
+        val roleId: Int,
+        val userId: String,
+        val nickname: String = "",
+        val avatar: String = "",
+        val sessionId: String = "",
+        val password: String = ""
 ) {
 
     override fun toString() = """{
@@ -50,10 +50,8 @@ data class JoinParams(
  * @property bucketId 所属bucket id
  * @property pageList bucket下所有页信息
  */
-data class WhiteBoardBucket(
-    val bucketId: String,
-    val pageList: MutableList<WhiteBoardPage>
-)
+data class WhiteBoardBucket(val bucketId: String,
+                            val pageList: MutableList<WhiteBoardPage>)
 
 
 /**
@@ -63,11 +61,9 @@ data class WhiteBoardBucket(
  * @property pageNumber 页号
  * @property thumbnails 白板缩略图url
  **/
-data class WhiteBoardPage(
-    val pageId: String,
-    val pageNumber: Int,
-    val thumbnails: String
-) {
+data class WhiteBoardPage(val pageId: String,
+                          val pageNumber: Int,
+                          val thumbnails: String) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

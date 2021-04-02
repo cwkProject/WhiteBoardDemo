@@ -1,11 +1,13 @@
 package com.latitech.sdk.example
 
 import android.util.Log
-import androidx.arch.core.executor.ArchTaskExecutor
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.latitech.sdk.whiteboard.WhiteBoardAPI
 import com.latitech.sdk.whiteboard.listener.OnNetworkStateListener
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -26,7 +28,7 @@ class RoomViewModel : ViewModel() {
     /**
      * 白板宽高比
      */
-    val whiteBoardRatio = MutableLiveData<String>("2048:1440")
+    val whiteBoardRatio = MutableLiveData("2048:1440")
 
     /**
      * 白板bucket信息
@@ -57,24 +59,29 @@ class RoomViewModel : ViewModel() {
                     // 白板中文件服务需要配合的网络请求(c++层没有集成http库)
                     val json = JSONObject(data)
 
-                    AnyWork()
-                            .setOnWorkFinishListener(false) {
-                                callback?.call(it.isSuccess, it.result ?: "")
-                            }
-                            .beginExecute(
-                                    "$SDK_FILE_HOST${json.getString("url")}",
-                                    json.getInt("method"),
-                                    json.getJSONObject("params"))
+                    viewModelScope.launch(Dispatchers.Default) {
+                        AnyWork().execute(
+                            "$SDK_FILE_HOST${json.getString("url")}",
+                            json.getInt("method"),
+                            json.getJSONObject("params"),
+                        )?.let {
+                            callback?.call(it.isSuccess, it.result ?: "")
+                        }
+                    }
                 }
                 "documentChange" -> {
                     // 翻页事件，收到新页的id，首次进入房间也会收到
                     val pageId = JSONObject(data).getString("widgetId")
 
-                    ArchTaskExecutor.getInstance().postToMainThread {
-                        // 保证执行顺序，在bucket赋值之后执行，
-                        // 否则可能由于主线程执行滞后导致刚进入房间时bucket.value没有完成赋值而获取当前页信息失败
+                    viewModelScope.launch {
                         currentPage.value = bucket.value?.pageList?.find { it.pageId == pageId }
                     }
+                }
+                "recoveryState" -> {
+                    // widget回收站状态
+                    val notEmpty = JSONObject(data).getBoolean("notEmpty")
+
+                    Log.v(TAG, "recoveryState not_empty:$notEmpty")
                 }
             }
         }
@@ -98,8 +105,6 @@ class RoomViewModel : ViewModel() {
                             val height = message.getInt("height")
 
                             whiteBoardRatio.postValue("$width:$height")
-
-                            // 此消息体中还有房间成员信息等
                         }
                     }
                 }
@@ -122,13 +127,18 @@ class RoomViewModel : ViewModel() {
                                 for (i in pageArray.length() - 1 downTo 0) {
                                     val page = pageArray.getJSONObject(i)
                                     pageList += WhiteBoardPage(
-                                            page.getString("documentId"),
-                                            page.getInt("documentNo"),
-                                            page.optString("url") ?: "")
+                                        page.getString("documentId"),
+                                        page.getInt("documentNo"),
+                                        page.optString("url") ?: ""
+                                    )
                                 }
 
-                                bucket.postValue(WhiteBoardBucket(pageInfo.getString("bucketId"),
-                                        pageList))
+                                bucket.postValue(
+                                    WhiteBoardBucket(
+                                        pageInfo.getString("bucketId"),
+                                        pageList
+                                    )
+                                )
                             }
                         }
                         1 -> {
@@ -136,9 +146,10 @@ class RoomViewModel : ViewModel() {
                             val message = JSONObject(data)
 
                             val page = WhiteBoardPage(
-                                    message.getString("documentId"),
-                                    message.getInt("documentNo"),
-                                    message.optString("url") ?: "")
+                                message.getString("documentId"),
+                                message.getInt("documentNo"),
+                                message.optString("url") ?: ""
+                            )
 
                             val index = bucket.value?.pageList?.indexOf(page) ?: -1
 

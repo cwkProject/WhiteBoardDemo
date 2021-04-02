@@ -53,6 +53,12 @@
                     android:text="插入文件" />
 
                 <Button
+                    android:id="@+id/select"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="选择" />
+
+                <Button
                     android:id="@+id/pan"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -69,6 +75,18 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="橡皮" />
+
+                <Button
+                    android:id="@+id/restore"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="撤销擦除" />
+
+                <Button
+                    android:id="@+id/clear_recovery"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="清空回收站" />
 
                 <Button
                     android:id="@+id/pre_page"

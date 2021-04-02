@@ -20,8 +20,7 @@ import com.latitech.sdk.whiteboard.core.WhiteBoardRenderer
  * @version 1.0 2018/3/21
  * @since 1.0 2018/3/21
  */
-class WhiteBoardView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) :
-    SurfaceView(context, attrs) {
+class WhiteBoardView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null) : SurfaceView(context, attrs) {
 
     /**
      * 手势输入坐标变换
@@ -67,8 +66,7 @@ class WhiteBoardView @JvmOverloads constructor(context: Context, attrs: Attribut
         var process = false
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN, MotionEvent.ACTION_UP -> process = renderer.onTouch(event, 0)
-            MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_POINTER_UP -> process =
-                renderer.onTouch(event, event.actionIndex)
+            MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_POINTER_UP -> process = renderer.onTouch(event, event.actionIndex)
             MotionEvent.ACTION_MOVE, MotionEvent.ACTION_CANCEL -> for (i in 0 until event.pointerCount) {
                 if (renderer.onTouch(event, i)) {
                     process = true
@@ -89,14 +87,10 @@ class WhiteBoardView @JvmOverloads constructor(context: Context, attrs: Attribut
      */
     private inner class Renderer : WhiteBoardRenderer(), SurfaceHolder.Callback {
 
-        override fun onCreateSurface(
-            display: android.opengl.EGLDisplay,
-            config: android.opengl.EGLConfig
-        ): EGLSurface {
-            return EGL14.eglCreateWindowSurface(
-                display, config, holder,
-                intArrayOf(EGL14.EGL_NONE), 0
-            )
+        override fun onCreateSurface(display: android.opengl.EGLDisplay,
+                                     config: android.opengl.EGLConfig): EGLSurface {
+            return EGL14.eglCreateWindowSurface(display, config, holder,
+                    intArrayOf(EGL14.EGL_NONE), 0)
         }
 
         override fun surfaceCreated(holder: SurfaceHolder) {
@@ -133,7 +127,7 @@ class WhiteBoardView @JvmOverloads constructor(context: Context, attrs: Attribut
          *
          * @return true表示事件被消耗，false表示事件被忽略
          */
-        internal fun onTouch(event: MotionEvent, pointerIndex: Int): Boolean {
+        fun onTouch(event: MotionEvent, pointerIndex: Int): Boolean {
             if (pointerIndex < 0) {
                 Log.w(TAG, "onTouchEventInput miss pointer.")
                 return false
@@ -142,18 +136,14 @@ class WhiteBoardView @JvmOverloads constructor(context: Context, attrs: Attribut
             var nativeAction = -1
 
             when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN ->
-                    nativeAction = NATIVE_ACTION_DOWN
-                MotionEvent.ACTION_MOVE ->
+                MotionEvent.ACTION_DOWN, MotionEvent.ACTION_POINTER_DOWN -> nativeAction = NATIVE_ACTION_DOWN
+                MotionEvent.ACTION_MOVE -> {
                     nativeAction = NATIVE_ACTION_MOVE
-                MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP ->
-                    nativeAction = NATIVE_ACTION_UP
-                MotionEvent.ACTION_CANCEL ->
-                    nativeAction = NATIVE_ACTION_CANCEL
-                else -> Log.w(
-                    TAG,
-                    "onTouchEventInput not support event action:" + event.actionMasked
-                )
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_POINTER_UP -> nativeAction = NATIVE_ACTION_UP
+                MotionEvent.ACTION_CANCEL -> nativeAction = NATIVE_ACTION_CANCEL
+                else -> Log.w(TAG,
+                        "onTouchEventInput not support event action:" + event.actionMasked)
             }
 
             var nativeToolType = -1
@@ -161,10 +151,8 @@ class WhiteBoardView @JvmOverloads constructor(context: Context, attrs: Attribut
             when (event.getToolType(pointerIndex)) {
                 MotionEvent.TOOL_TYPE_STYLUS -> nativeToolType = NATIVE_TOOL_TYPE_STYLUS
                 MotionEvent.TOOL_TYPE_FINGER -> nativeToolType = NATIVE_TOOL_TYPE_FINGER
-                else -> Log.w(
-                    TAG,
-                    "onTouchEventInput not support input tool:" + event.getToolType(pointerIndex)
-                )
+                else -> Log.w(TAG,
+                        "onTouchEventInput not support input tool:" + event.getToolType(pointerIndex))
             }
 
             if (nativeAction < 0 || nativeToolType < 0) {
@@ -176,16 +164,9 @@ class WhiteBoardView @JvmOverloads constructor(context: Context, attrs: Attribut
             else
                 1f
 
-            return nativeTouchEventInput(
-                nativeToolType,
-                nativeAction,
-                event.getPointerId(pointerIndex),
-                event.getX(pointerIndex),
-                event.getY(pointerIndex),
-                pressure,
-                event.getSize(pointerIndex),
-                event.eventTime
-            )
+            return nativeTouchEventInput(nativeToolType, nativeAction,
+                    event.getPointerId(pointerIndex), event.getX(pointerIndex),
+                    event.getY(pointerIndex), pressure, event.getSize(pointerIndex), event.eventTime)
         }
     }
 }
